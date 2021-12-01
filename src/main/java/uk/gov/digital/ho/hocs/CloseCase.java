@@ -12,8 +12,10 @@ import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.Base64;
 import java.util.UUID;
 import java.util.stream.Stream;
 
@@ -30,12 +32,14 @@ public class CloseCase {
     private final int gapBetweenUpdates;
     private final HttpClient client;
     private final String filePath;
+    private final String basicAuth;
 
     public CloseCase(@Value("${workflow-service}") String workflowAddress,
                      @Value("${x-auth-groups}") String xAuthGroups,
                      @Value("${x-auth-userId}") String xAuthUserId,
                      @Value("${gap-between-updates}") int gapBetweenUpdates,
                      @Value("${file-path}") String filePath,
+                     @Value("${hocs.basic-auth}") String basicAuth,
                      HttpClient client){
 
         this.workflowAddress = workflowAddress + "/case/close/";
@@ -44,6 +48,7 @@ public class CloseCase {
         this.gapBetweenUpdates = gapBetweenUpdates;
         this.client = client;
         this.filePath = filePath;
+        this.basicAuth = basicAuth;
     }
 
     @PostConstruct
@@ -101,6 +106,7 @@ public class CloseCase {
                 .header("accept", "application/json")
                 .header("X-Auth-Groups", xAuthGroups)
                 .header("X-Auth-UserId", xAuthUserId)
+                .header("Authorization", getBasicAuth())
                 .build();
 
         try {
@@ -115,5 +121,7 @@ public class CloseCase {
     public void setLogger(Logger logger){
         this.logger = logger;
     }
+
+    private String getBasicAuth() { return String.format("Basic %s", Base64.getEncoder().encodeToString(basicAuth.getBytes(StandardCharsets.UTF_8))); }
 
 }

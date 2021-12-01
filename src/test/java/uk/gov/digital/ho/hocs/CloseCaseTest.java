@@ -12,6 +12,8 @@ import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
+import java.nio.charset.StandardCharsets;
+import java.util.Base64;
 
 import static net.logstash.logback.argument.StructuredArguments.value;
 import static org.mockito.ArgumentMatchers.any;
@@ -36,6 +38,8 @@ public class CloseCaseTest {
     @Mock
     private HttpResponse response;
 
+    private String basicAuth = "basicAuth";
+
     @BeforeEach
     public void setup() {
         doCallRealMethod().when(closeCase).setLogger(any());
@@ -56,7 +60,7 @@ public class CloseCaseTest {
         when(closeCase.callCloseEndpoint(any(), any())).thenReturn("output");
         closeCase.processLine("58f7179b-d88e-47f6-9867-da648ba89c10,,,,,");
         verify(closeCase).callCloseEndpoint("58f7179b-d88e-47f6-9867-da648ba89c10", null);
-        verify(logger).info( "output");
+        verify(logger).info("Response: output");
     }
 
     @Test
@@ -65,7 +69,7 @@ public class CloseCaseTest {
         when(client.send(any(), any())).thenReturn(response);
 
         CloseCase closeCaseReal = new CloseCase("http://workflow", "xAuthGroups",
-                                    "xAuthUserId", 0, "filePath", client);
+                                    "xAuthUserId", 0, "filePath", "basicAuth", client);
 
         closeCaseReal.callCloseEndpoint("1bf5f228-84e3-44f2-9655-5fc3df8350b4", client);
 
@@ -75,6 +79,7 @@ public class CloseCaseTest {
                 .header("accept", "application/json")
                 .header("X-Auth-Groups", "xAuthGroups")
                 .header("X-Auth-UserId", "xAuthUserId")
+                .header("Authorization", getBasicAuth())
                 .build();
 
         verify(client).send(request, HttpResponse.BodyHandlers.ofString());
@@ -86,7 +91,7 @@ public class CloseCaseTest {
         doThrow(exception).when(client).send(any(), any());
 
         CloseCase closeCaseReal = new CloseCase("http://workflow", "xAuthGroups",
-                "xAuthUserId", 0, "filePath", client);
+                "xAuthUserId", 0, "filePath", "basicAuth", client);
 
         closeCaseReal.setLogger(logger);
 
@@ -106,5 +111,6 @@ public class CloseCaseTest {
         verify(closeCase).processLine("cf099158-41cf-4ca8-909c-24ab9b0cebd5,,,,");
     }
 
+    private String getBasicAuth() { return String.format("Basic %s", Base64.getEncoder().encodeToString(basicAuth.getBytes(StandardCharsets.UTF_8))); }
 
 }
