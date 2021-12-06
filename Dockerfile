@@ -1,11 +1,9 @@
-FROM quay.io/ukhomeofficedigital/alpine:v3.14 as builder
+FROM quay.io/ukhomeofficedigital/alpine:v3.14 AS builder
 
 USER root
 
 RUN apk add --no-cache openjdk11-jre
-
 COPY build/libs/*.jar .
-
 RUN java -Djarmode=layertools -jar *.jar extract
 
 FROM quay.io/ukhomeofficedigital/alpine:v3.14
@@ -26,7 +24,6 @@ RUN addgroup -S ${GROUP} && \
     chown -R ${USER}:${GROUP} /app
 
 COPY scripts/run.sh /app/scripts/run.sh
-
 RUN chmod a+x /app/scripts/*
 
 COPY --from=builder dependencies/ ./
