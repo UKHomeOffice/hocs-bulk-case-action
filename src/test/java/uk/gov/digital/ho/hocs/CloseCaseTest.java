@@ -47,15 +47,15 @@ public class CloseCaseTest {
     }
 
     @Test
-    public void testReadInvalidUUID(){
+    public void testReadInvalidUUID() {
         doCallRealMethod().when(closeCase).processLine(any());
         closeCase.processLine("notauuid");
-        verify(logger).error( "Invalid uuid {}", "notauuid", value("exception", "INVALID_UUID"));
+        verify(logger).error("Invalid uuid {}", "notauuid", value("exception", "INVALID_UUID"));
         verify(closeCase, never()).callCloseEndpoint(any(), any());
     }
 
     @Test
-    public void testReadGoodUUID(){
+    public void testReadGoodUUID() {
         doCallRealMethod().when(closeCase).processLine(any());
         when(closeCase.callCloseEndpoint(any(), any())).thenReturn("output");
         closeCase.processLine("58f7179b-d88e-47f6-9867-da648ba89c10,,,,,");
@@ -69,7 +69,7 @@ public class CloseCaseTest {
         when(client.send(any(), any())).thenReturn(response);
 
         CloseCase closeCaseReal = new CloseCase("http://workflow", "xAuthGroups",
-                                    "xAuthUserId", 0, "filePath", "basicAuth", client);
+                "xAuthUserId", 0, "filePath", "basicAuth", client);
 
         closeCaseReal.callCloseEndpoint("1bf5f228-84e3-44f2-9655-5fc3df8350b4", client);
 
@@ -97,11 +97,11 @@ public class CloseCaseTest {
 
         closeCaseReal.callCloseEndpoint("1bf5f228-84e3-44f2-9655-5fc3df8350b4", client);
 
-        verify(logger).error("Error processing uuid {}" , "1bf5f228-84e3-44f2-9655-5fc3df8350b4", value("exception", exception));
+        verify(logger).error("Error processing uuid {}", "1bf5f228-84e3-44f2-9655-5fc3df8350b4", value("exception", exception));
     }
 
     @Test
-    public void testFileReading(){
+    public void testFileReading() {
         doCallRealMethod().when(closeCase).readFile(any());
         closeCase.readFile("src/test/resources/testinput.csv");
         verify(closeCase).processLine("caseUuid,,,,");
@@ -111,6 +111,8 @@ public class CloseCaseTest {
         verify(closeCase).processLine("cf099158-41cf-4ca8-909c-24ab9b0cebd5,,,,");
     }
 
-    private String getBasicAuth() { return String.format("Basic %s", Base64.getEncoder().encodeToString(basicAuth.getBytes(StandardCharsets.UTF_8))); }
+    private String getBasicAuth() {
+        return String.format("Basic %s", Base64.getEncoder().encodeToString(basicAuth.getBytes(StandardCharsets.UTF_8)));
+    }
 
 }
