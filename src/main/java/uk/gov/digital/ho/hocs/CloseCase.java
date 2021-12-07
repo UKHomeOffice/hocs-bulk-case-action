@@ -40,7 +40,7 @@ public class CloseCase {
                      @Value("${gap-between-updates}") int gapBetweenUpdates,
                      @Value("${file-path}") String filePath,
                      @Value("${hocs.basic-auth}") String basicAuth,
-                     HttpClient client){
+                     HttpClient client) {
 
         this.workflowAddress = workflowAddress + "/case/close/";
         this.xAuthGroups = xAuthGroups;
@@ -52,7 +52,7 @@ public class CloseCase {
     }
 
     @PostConstruct
-    public void runService(){
+    public void runService() {
         readFile(filePath);
     }
 
@@ -66,32 +66,31 @@ public class CloseCase {
         try (Stream<String> lines = Files.lines(path)) {
             lines.forEach(this::processLine);
         } catch (IOException e) {
-            logger.error("Error processing line with exception {}" , e, value("exception", e));
+            logger.error("Error processing line with exception {}", e, value("exception", e));
         }
     }
 
-    public void processLine(String line){
+    public void processLine(String line) {
         line = line.strip().replace(",", "");
-        if(checkIfValidUUID(line)){
+        if (checkIfValidUUID(line)) {
             String output = callCloseEndpoint(line, client);
             logger.info("Response: " + output);
             sleep();
-        }
-        else{
+        } else {
             logger.error("Invalid uuid {}", line, value("exception", "INVALID_UUID"));
         }
     }
 
-    private boolean checkIfValidUUID(String stringUuid){
+    private boolean checkIfValidUUID(String stringUuid) {
         try {
             UUID goodUuid = UUID.fromString(stringUuid);
-        } catch (Exception e){
+        } catch (Exception e) {
             return false;
         }
         return true;
     }
 
-    private void sleep(){
+    private void sleep() {
         try {
             Thread.sleep(gapBetweenUpdates);
         } catch (InterruptedException e) {
@@ -99,7 +98,7 @@ public class CloseCase {
         }
     }
 
-    public String callCloseEndpoint(String uuid, HttpClient client){
+    public String callCloseEndpoint(String uuid, HttpClient client) {
         var request = HttpRequest.newBuilder(
                 URI.create(workflowAddress + uuid))
                 .PUT(HttpRequest.BodyPublishers.noBody())
@@ -113,15 +112,17 @@ public class CloseCase {
             HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
             return response.body();
         } catch (IOException | InterruptedException e) {
-            logger.error("Error processing uuid {}" , uuid, value("exception", e));
+            logger.error("Error processing uuid {}", uuid, value("exception", e));
             return null;
         }
     }
 
-    public void setLogger(Logger logger){
+    public void setLogger(Logger logger) {
         this.logger = logger;
     }
 
-    private String getBasicAuth() { return String.format("Basic %s", Base64.getEncoder().encodeToString(basicAuth.getBytes(StandardCharsets.UTF_8))); }
+    private String getBasicAuth() {
+        return String.format("Basic %s", Base64.getEncoder().encodeToString(basicAuth.getBytes(StandardCharsets.UTF_8)));
+    }
 
 }
