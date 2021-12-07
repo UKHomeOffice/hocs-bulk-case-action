@@ -5,8 +5,9 @@ to perform actions on cases in HOCS (Home Office Correspondence Service) in bulk
 
 ## Features
 ### Close Case
-Currently the only service implemented which allows the application
-to close a list of cases which should be given as UUIDs.
+This is currently the only service implemented which allows the application
+to close a list of cases which should be given as UUIDs in an input file. This input 
+file should be a CSV without headers.
 
 ## Run Locally
 ### Running in Docker
