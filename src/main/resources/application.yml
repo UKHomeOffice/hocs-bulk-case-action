@@ -1,0 +1,13 @@
+server:
+    port: 8180
+
+hocs:
+    basicauth: UNSET
+    workflow-service: http://localhost:8091
+
+x-auth:
+    groups:
+    userId:
+
+file-path:
+gap-between-updates: 5000

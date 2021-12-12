@@ -34,9 +34,9 @@ public class CloseCase {
     private final String filePath;
     private final String basicAuth;
 
-    public CloseCase(@Value("${workflow-service}") String workflowAddress,
-                     @Value("${x-auth-groups}") String xAuthGroups,
-                     @Value("${x-auth-userId}") String xAuthUserId,
+    public CloseCase(@Value("${hocs.workflow-service}") String workflowAddress,
+                     @Value("${x-auth.groups}") String xAuthGroups,
+                     @Value("${x-auth.userId}") String xAuthUserId,
                      @Value("${gap-between-updates}") int gapBetweenUpdates,
                      @Value("${file-path}") String filePath,
                      @Value("${hocs.basic-auth}") String basicAuth,
