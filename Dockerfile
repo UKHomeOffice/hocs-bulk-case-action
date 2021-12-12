@@ -32,6 +32,8 @@ RUN true # Bug where copying with 0 action then copying again throws an error
 COPY --from=builder spring-boot-loader/ ./
 COPY --from=builder application/ ./
 
+COPY files/* /app/files/
+
 EXPOSE 8080
 
 USER ${USER_ID}
