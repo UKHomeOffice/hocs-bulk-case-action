@@ -34,7 +34,6 @@ steps:
     depends_on:
       - test project
 
-
 ---
 kind: pipeline
 type: kubernetes
