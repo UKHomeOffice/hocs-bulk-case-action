@@ -33,3 +33,47 @@ steps:
       DOCKER_USERNAME: ukhomeofficedigital+hocs_quay_robot
     depends_on:
       - test project
+
+---
+kind: pipeline
+type: kubernetes
+name: deploy
+depends_on:
+  - build
+
+steps:
+  - name: deploy to not prod
+    image: quay.io/ukhomeofficedigital/kd:v1.19.13
+    commands:
+      - cd kube
+      - ./deploy.sh
+    environment:
+      ENVIRONMENT: ${DRONE_DEPLOY_TO}
+      KUBE_TOKEN:
+        from_secret: hocs_bulk_case_action_${DRONE_DEPLOY_TO/-/_}
+      KUBE_SERVER: https://kube-api-notprod.notprod.acp.homeoffice.gov.uk
+      CLUSTER_NAME: acp-notprod
+    when:
+      event:
+        - promote
+      target:
+        exclude:
+          - "*-prod"
+
+  - name: deploy to prod
+    image: quay.io/ukhomeofficedigital/kd:v1.19.13
+    commands:
+      - cd kube
+      - ./deploy.sh
+    environment:
+      ENVIRONMENT: ${DRONE_DEPLOY_TO}
+      KUBE_TOKEN:
+        from_secret: hocs_bulk_case_action_${DRONE_DEPLOY_TO/-/_}
+      KUBE_SERVER: https://kube-api-prod.prod.acp.homeoffice.gov.uk
+      CLUSTER_NAME: acp-prod
+    when:
+      event:
+        - promote
+      target:
+        include:
+          - "*-prod"

@@ -1,0 +1,91 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: hocs-bulk-case-action
+  labels:
+    role: hocs-backend
+    version: {{.VERSION}}
+spec:
+  template:
+    metadata:
+      labels:
+        role: hocs-backend
+        version: {{.VERSION}}
+    spec:
+      initContainers:
+        - name: truststore
+          image: quay.io/ukhomeofficedigital/cfssl-sidekick-jks:v0.0.9
+          securityContext:
+            runAsNonRoot: true
+            capabilities:
+              drop:
+                - SETUID
+                - SETGID
+          args:
+            - --certs=/certs
+            - --command=/usr/bin/create-keystore.sh /certs/tls.pem /certs/tls-key.pem /etc/ssl/certs/acp-root.crt
+            - --domain=localhost
+            - --onetime=true
+          env:
+            - name: KUBE_NAMESPACE
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.namespace
+          volumeMounts:
+            - name: certs
+              mountPath: /certs
+            - name: keystore
+              mountPath: /etc/keystore
+            - name: bundle
+              mountPath: /etc/ssl/certs
+              readOnly: true
+          resources:
+            limits:
+              memory: 96Mi
+              cpu: 900m
+            requests:
+              memory: 96Mi
+              cpu: 300m
+
+      containers:
+        - name: hocs-bulk-case-action
+          image: quay.io/ukhomeofficedigital/hocs-bulk-case-action:{{.VERSION}}
+          env:
+            - name: JAVA_OPTS
+              value: '-Xms1280m -Xmx1280m -Djavax.net.ssl.trustStore=/etc/keystore/truststore.jks -Dhttp.nonProxyHosts=*.{{.KUBE_NAMESPACE}}.svc.cluster.local'
+            - name: HOCS_WORKFLOW_SERVICE
+              value: 'https://hocs-workflow.{{.KUBE_NAMESPACE}}.svc.cluster.local'
+            - name: HOCS_BASICAUTH
+              valueFrom:
+                secretKeyRef:
+                  name: ui-casework-creds
+                  key: plaintext
+            - name: X_AUTH_GROUPS
+              valueFrom:
+                secretKeyRef:
+                  name: hocs-bulk-action-auth
+                  key: groups
+            - name: X_AUTH_USERID
+              valueFrom:
+                secretKeyRef:
+                  name: hocs-bulk-action-auth
+                  key: user-id
+            - name: FILE_PATH
+              value: '/app/files/update.csv'
+          volumeMounts:
+            - mountPath: /etc/keystore
+              name: keystore
+              readOnly: true
+
+      volumes:
+        - name: keystore
+          emptyDir:
+            medium: "Memory"
+        - name: certs
+          emptyDir:
+            medium: "Memory"
+        - name: bundle
+          configMap:
+            name: bundle
+      restartPolicy: Never
+  backoffLimit: 1
