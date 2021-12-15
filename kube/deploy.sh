@@ -13,6 +13,6 @@ export KUBE_CERTIFICATE_AUTHORITY="https://raw.githubusercontent.com/UKHomeOffic
 
 cd kd
 
-kd -f hocs-bulk-case-action.yaml
+kd --timeout 60m -f hocs-bulk-case-action.yaml
 kd run wait --for=condition=complete "job/hocs-bulk-case-action"
 kd --delete -f hocs-bulk-case-action.yaml
